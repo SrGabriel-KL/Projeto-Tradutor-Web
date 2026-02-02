@@ -63,7 +63,6 @@ async function traduzir() {
         let resposta = await fetch(endereco)
         let dados = await resposta.json()
 
-        
         if (inputTexto.value.trim() === texto) {
             textoTraduzido.innerText = dados.responseData.translatedText
         }
@@ -72,8 +71,30 @@ async function traduzir() {
     }
 }
 
-//  Automático
+//  MICROFONE
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+const recognition = new SpeechRecognition()
+
+recognition.lang = "pt-BR"
+recognition.interimResults = false
+
+function ativarMicrofone() {
+    recognition.start()
+}
+
+recognition.onresult = (event) => {
+    const textoFalado = event.results[0][0].transcript
+    inputTexto.value = textoFalado
+    traduzir()
+}
+
+recognition.onerror = (event) => {
+    alert("Erro no microfone: " + event.error)
+}
+
+// Automático
 inputTexto.addEventListener("input", traduzir)
 seletorIdioma.addEventListener("change", traduzir)
+
 
 
