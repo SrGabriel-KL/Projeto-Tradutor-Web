@@ -41,63 +41,39 @@ let inputTexto = document.querySelector(".input-texto")
 let textoTraduzido = document.querySelector(".traducao")
 let seletorIdioma = document.querySelector(".idioma")
 
-// ===== TRADUÇÃO =====
 async function traduzir() {
+    const texto = inputTexto.value.trim()
 
-    if (inputTexto.value.trim() === "") {
-        textoTraduzido.innerText = "Digite ou fale um texto para traduzir."
+    if (texto === "") {
+        textoTraduzido.innerText = ""
         return
     }
 
-    let idiomaDestino = "en" // padrão
+    let idiomaDestino = "en"
+    if (seletorIdioma.value === "Inglês") idiomaDestino = "en"
+    else if (seletorIdioma.value === "Alemão") idiomaDestino = "de"
+    else if (seletorIdioma.value === "Russo") idiomaDestino = "ru"
 
-    if (seletorIdioma.value === "Inglês") {
-        idiomaDestino = "en"
-    } else if (seletorIdioma.value === "Alemão") {
-        idiomaDestino = "de"
-    } else if (seletorIdioma.value === "Russo") {
-        idiomaDestino = "ru"
+    try {
+        let endereco =
+            "https://api.mymemory.translated.net/get?q=" +
+            encodeURIComponent(texto) +
+            "&langpair=pt-BR|" + idiomaDestino
+
+        let resposta = await fetch(endereco)
+        let dados = await resposta.json()
+
+        
+        if (inputTexto.value.trim() === texto) {
+            textoTraduzido.innerText = dados.responseData.translatedText
+        }
+    } catch (e) {
+        console.error(e)
     }
-
-    let endereco =
-        "https://api.mymemory.translated.net/get?q=" +
-        encodeURIComponent(inputTexto.value) +
-        "&langpair=pt-BR|" + idiomaDestino
-
-    let resposta = await fetch(endereco)
-    let dados = await resposta.json()
-
-    textoTraduzido.innerText = dados.responseData.translatedText
 }
 
-// ===== MICROFONE =====
-const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition
+//  Automático
+inputTexto.addEventListener("input", traduzir)
+seletorIdioma.addEventListener("change", traduzir)
 
-if (!SpeechRecognition) {
-    alert("Seu navegador não suporta reconhecimento de voz.")
-}
-
-const recognition = new SpeechRecognition()
-
-recognition.lang = "pt-BR"
-recognition.continuous = false
-recognition.interimResults = false
-
-function ativarMicrofone() {
-    recognition.start()
-}
-
-// Quando terminar de falar
-recognition.onresult = function (event) {
-    let textoFalado = event.results[0][0].transcript
-    inputTexto.value = textoFalado
-
-    // 👉 TRADUZ AUTOMATICAMENTE
-    traduzir()
-}
-
-recognition.onerror = function (event) {
-    console.error("Erro no microfone:", event.error)
-}
 
